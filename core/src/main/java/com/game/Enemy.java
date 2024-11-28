@@ -11,13 +11,19 @@ public class Enemy extends Character {
     }
 
     public String attackRandom(Array<Player> players) {
-        Player target = players.get(MathUtils.random(0,2));
+        Player target = players.get(MathUtils.random(0, 2));
         if (!target.isAlive()) {
-            target = players.get(MathUtils.random(0,2));
+            target = players.get(MathUtils.random(0, 2));
         }
-        int attackDamage = MathUtils.random(attackPower,3);
+        int attackDamage = MathUtils.random(attackPower, 3);
+
+        boolean defending = false;
+        if (target.isDefending()) defending = true;
         target.takeDamage(attackDamage);
 
+        if (defending && attackDamage > 1) {
+            return target.getName() + " defended " + attackDamage + " damage!";
+        }
         return "Enemy attacked " + target.getName() + " for " + attackDamage + " damage!";
     }
 }

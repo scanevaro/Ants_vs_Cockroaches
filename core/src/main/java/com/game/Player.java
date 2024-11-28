@@ -11,13 +11,11 @@ public class Player extends Character {
     }
 
     public void attack(Character target, Integer attackIndex) {
-        System.out.println(name + " ataca a " + target.getName() + " causando " + attackPower + " de daño.");
         target.takeDamage(attackPower + attackIndex);
     }
 
-    public void defend() {
-        defending = true;
-        System.out.println(name + " se defiende. Recibirá menos daño en el próximo ataque.");
+    public void defend(boolean defend) {
+        defending = defend;
     }
 
     @Override
@@ -30,7 +28,6 @@ public class Player extends Character {
     }
 
     public void waitAction() {
-        System.out.println(name + " decide esperar y no hace nada este turno");
         healOne();
     }
 
@@ -39,5 +36,9 @@ public class Player extends Character {
         this.positionX = x;
         this.positionY = y;
         this.sprite.setPosition(x, y); // Asegúrate de mover el sprite también
+    }
+
+    public boolean isDefending() {
+        return defending;
     }
 }

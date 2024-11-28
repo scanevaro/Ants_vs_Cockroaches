@@ -1,6 +1,5 @@
 package com.game;
 
-import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -85,14 +84,15 @@ public class GameScreen extends ScreenAdapter {
         font.getData().setScale(2f);
         font.draw(batch, "How to play", 50, 150);
         font.draw(batch, "Actions 'Attack' and 'Defend' move ants forward on their turn, 'Wait' heals 1.", 50, 100);
-        font.draw(batch, "Consecutive attacks add 1 damage", 50, 50);
+        font.draw(batch, "Consecutive attacks add 1 damage. A different action resets the combo", 50, 50);
         font.getData().setScale(3.5f);
         font.setColor(Color.WHITE);
 
         // Status Text
-        if (statusText != null){
-            font.getData().setScale(2.5f);
-            font.draw(batch, statusText, 1250, 225);
+        if (statusText != null) {
+            font.getData().setScale(2.6f);
+            font.draw(batch, "Status:", 1250, 250);
+            font.draw(batch, statusText, 1250, 215);
             font.getData().setScale(3.5f);
         }
 
@@ -137,6 +137,10 @@ public class GameScreen extends ScreenAdapter {
         font.draw(batch, currentPlayer.getName() + " turn", 50, 275);
         font.draw(batch, "Press 'A' to atack, 'D' to defend, 'W' to wait", 50, 225);
 
+        for (int i = 0; i < players.size; i++) {
+            players.get(i).defend(false);
+        }
+
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.A)) {
             actionsQueue.add(() -> {
                 currentPlayer.attack(enemy, attackIndex);
@@ -146,7 +150,7 @@ public class GameScreen extends ScreenAdapter {
             nextPlayerAction();
         } else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.D)) {
             actionsQueue.add(() -> {
-                currentPlayer.defend();
+                currentPlayer.defend(true);
                 attackIndex = 0;
                 movePlayerToFront(currentPlayer);
             });
@@ -185,6 +189,7 @@ public class GameScreen extends ScreenAdapter {
         currentPlayerIndex++;
         if (currentPlayerIndex >= players.size) {
             currentPlayerIndex = 0; // Reiniciar el índice
+            statusText = "Performing actions...";
             executeActions(); // Ejecutar las acciones seleccionadas
             attackIndex = 0; //Attack Combos
         }
