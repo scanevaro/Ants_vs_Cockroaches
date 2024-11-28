@@ -23,7 +23,7 @@ public class GameScreen extends ScreenAdapter {
     private Sprite warriorTexture, mageTexture, archerTexture, cockroachTexture;
     private int currentPlayerIndex;
     private Array<Runnable> actionsQueue; // Lista de acciones que se ejecutarán
-    private int attackIndex, frontAntPositionX,frontAntPositionY, midAntPositionX,midAntPositionY,backAntPositionX,backAntPositionY;
+    private int attackIndex, frontAntPositionX, frontAntPositionY, midAntPositionX, midAntPositionY, backAntPositionX, backAntPositionY;
     private String statusText;
     private int killStreak;
 
@@ -49,8 +49,8 @@ public class GameScreen extends ScreenAdapter {
         players = new Array<>();
 
         players.add(new Player("Warrior Ant", MathUtils.random(10, 15), 1, frontAntPositionX, frontAntPositionY, warriorTexture));
-        players.add(new Player("Archer Ant", MathUtils.random(8,13), 1, midAntPositionX, midAntPositionY, archerTexture));
-        players.add(new Player("Mage Ant", MathUtils.random(6,11), 1, backAntPositionX, backAntPositionY, mageTexture));
+        players.add(new Player("Archer Ant", MathUtils.random(8, 13), 1, midAntPositionX, midAntPositionY, archerTexture));
+        players.add(new Player("Mage Ant", MathUtils.random(6, 11), 1, backAntPositionX, backAntPositionY, mageTexture));
 
         // Crear enemigo
         enemy = new Enemy("Baby Cockroach", MathUtils.random(9, 15), 1, 500, 300, cockroachTexture);
@@ -84,7 +84,7 @@ public class GameScreen extends ScreenAdapter {
         font.setColor(Color.WHITE);
 
         // Status Text
-        if(statusText != null)
+        if (statusText != null)
             font.draw(batch, statusText, 50, 130);
 
         // Enemy kill streak
@@ -102,10 +102,10 @@ public class GameScreen extends ScreenAdapter {
             handlePlayerActionSelection();
         } else if (state == 1) { // Ejecución de acciones
             if (actionsQueue.isEmpty()) {
-                if (!enemy.isAlive()){
+                if (!enemy.isAlive()) {
                     state = 3;
                     killStreak++;
-                    if (players.peek().isAlive()){ //heal 1 hp to last ant
+                    if (players.peek().isAlive()) { //heal 1 hp to last ant
                         players.peek().healOne();
                     }
                     return;
