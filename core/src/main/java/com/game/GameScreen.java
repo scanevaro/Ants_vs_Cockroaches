@@ -23,7 +23,7 @@ public class GameScreen extends ScreenAdapter {
     private Sprite warriorTexture, mageTexture, archerTexture, cockroachTexture;
     private int currentPlayerIndex;
     private Array<Runnable> actionsQueue; // Lista de acciones que se ejecutarán
-    private int attackIndex;
+    private int attackIndex, frontAntPositionX,frontAntPositionY, midAntPositionX,midAntPositionY,backAntPositionX,backAntPositionY;
     private String statusText;
     private int killStreak;
 
@@ -38,12 +38,19 @@ public class GameScreen extends ScreenAdapter {
         archerTexture = new Sprite(new Texture("archer.png"));
         cockroachTexture = new Sprite(new Texture("cockroach.png"));
 
+        frontAntPositionX = 300;
+        frontAntPositionY = 300;
+        midAntPositionX = 200;
+        midAntPositionY = 300;
+        backAntPositionX = 100;
+        backAntPositionY = 300;
+
         // Crear un equipo de 3 jugadores
         players = new Array<>();
 
-        players.add(new Player("Warrior Ant", MathUtils.random(10, 15), 1, 300, 300, warriorTexture));
-        players.add(new Player("Archer Ant", MathUtils.random(8,13), 1, 200, 300, archerTexture));
-        players.add(new Player("Mage Ant", MathUtils.random(6,11), 1, 100, 300, mageTexture));
+        players.add(new Player("Warrior Ant", MathUtils.random(10, 15), 1, frontAntPositionX, frontAntPositionY, warriorTexture));
+        players.add(new Player("Archer Ant", MathUtils.random(8,13), 1, midAntPositionX, midAntPositionY, archerTexture));
+        players.add(new Player("Mage Ant", MathUtils.random(6,11), 1, backAntPositionX, backAntPositionY, mageTexture));
 
         // Crear enemigo
         enemy = new Enemy("Baby Cockroach", MathUtils.random(9, 15), 1, 500, 300, cockroachTexture);
@@ -151,13 +158,13 @@ public class GameScreen extends ScreenAdapter {
 
     private void recalculatePlayerPositions() {
         // Define posiciones base para los jugadores
-        float baseX = 300; // Posición inicial en X
-        float baseY = 300; // Posición base para los sprites
+        float baseX = frontAntPositionX; // Posición inicial en X
+        float baseY = frontAntPositionY; // Posición base para los sprites
 
         for (int i = 0; i < players.size; i++) {
             Player player = players.get(i);
             player.setPosition(baseX, baseY); // Reubica sprites
-            baseX = baseX - 100;
+            baseX = baseX - (frontAntPositionX - midAntPositionX);
         }
     }
 
