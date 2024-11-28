@@ -64,7 +64,7 @@ public abstract class Character {
         );
 
         // Dibujar el valor numérico de la salud
-        font.draw(batch, health + "/" + maxHealth, positionX, positionY - barHeight - 10);
+        font.draw(batch, health + "/" + maxHealth, positionX, positionY - barHeight - 40);
     }
 
     public void healOne(){

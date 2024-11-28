@@ -1,5 +1,6 @@
 package com.game;
 
+import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -23,7 +24,7 @@ public class GameScreen extends ScreenAdapter {
     private Sprite warriorTexture, mageTexture, archerTexture, cockroachTexture;
     private int currentPlayerIndex;
     private Array<Runnable> actionsQueue; // Lista de acciones que se ejecutarán
-    private int attackIndex, frontAntPositionX, frontAntPositionY, midAntPositionX, midAntPositionY, backAntPositionX, backAntPositionY;
+    private int attackIndex, enemyPositionX, enemyPositionY, frontAntPositionX, frontAntPositionY, midAntPositionX, midAntPositionY, backAntPositionX, backAntPositionY;
     private String statusText;
     private int killStreak;
 
@@ -31,6 +32,7 @@ public class GameScreen extends ScreenAdapter {
     public void show() {
         batch = new SpriteBatch();
         font = new BitmapFont();
+        font.getData().setScale(3.5f);
 
         // Cargar texturas
         warriorTexture = new Sprite(new Texture("warrior.png"));
@@ -38,12 +40,14 @@ public class GameScreen extends ScreenAdapter {
         archerTexture = new Sprite(new Texture("archer.png"));
         cockroachTexture = new Sprite(new Texture("cockroach.png"));
 
-        frontAntPositionX = 300;
-        frontAntPositionY = 300;
-        midAntPositionX = 200;
-        midAntPositionY = 300;
+        frontAntPositionX = (int) (mageTexture.getWidth() + archerTexture.getWidth() + 175);
+        frontAntPositionY = 400;
+        midAntPositionX = (int) (mageTexture.getWidth() + 100);
+        midAntPositionY = 400;
         backAntPositionX = 100;
-        backAntPositionY = 300;
+        backAntPositionY = 400;
+        enemyPositionX = (int) (Gdx.graphics.getWidth() - cockroachTexture.getWidth());
+        enemyPositionY = 400;
 
         // Crear un equipo de 3 jugadores
         players = new Array<>();
@@ -53,7 +57,7 @@ public class GameScreen extends ScreenAdapter {
         players.add(new Player("Mage Ant", MathUtils.random(6, 11), 1, backAntPositionX, backAntPositionY, mageTexture));
 
         // Crear enemigo
-        enemy = new Enemy("Baby Cockroach", MathUtils.random(9, 15), 1, 500, 300, cockroachTexture);
+        enemy = new Enemy("Baby Cockroach", MathUtils.random(9, 15), 1, enemyPositionX, enemyPositionY, cockroachTexture);
 
         state = 0; // Inicia con la selección de acciones de los jugadores
         currentPlayerIndex = 0;
@@ -78,17 +82,24 @@ public class GameScreen extends ScreenAdapter {
 
         // How to play
         font.setColor(Color.ORANGE);
-        font.draw(batch, "How to play", 50, 215);
-        font.draw(batch, "Actions 'Attack' and 'Defend' move ants forward on their turn, 'Wait' heals 1.", 50, 200);
-        font.draw(batch, "Consecutive attacks add 1 damage", 50, 185);
+        font.getData().setScale(2f);
+        font.draw(batch, "How to play", 50, 150);
+        font.draw(batch, "Actions 'Attack' and 'Defend' move ants forward on their turn, 'Wait' heals 1.", 50, 100);
+        font.draw(batch, "Consecutive attacks add 1 damage", 50, 50);
+        font.getData().setScale(3.5f);
         font.setColor(Color.WHITE);
 
         // Status Text
-        if (statusText != null)
-            font.draw(batch, statusText, 50, 130);
+        if (statusText != null){
+            font.getData().setScale(2.5f);
+            font.draw(batch, statusText, 1250, 225);
+            font.getData().setScale(3.5f);
+        }
 
         // Enemy kill streak
-        font.draw(batch, "Current kill streak = " + killStreak, 50, 160);
+        font.setColor(Color.LIGHT_GRAY);
+        font.draw(batch, "Current kill streak = " + killStreak, 1475, 50);
+        font.setColor(Color.WHITE);
 
         // Manejo de turnos y acciones
         handleTurn();
@@ -123,8 +134,8 @@ public class GameScreen extends ScreenAdapter {
     private void handlePlayerActionSelection() {
         Player currentPlayer = players.get(currentPlayerIndex);
 
-        font.draw(batch, currentPlayer.getName() + " turn", 50, 100);
-        font.draw(batch, "Press 'A' to atack, 'D' to defend, 'W' to wait", 50, 70);
+        font.draw(batch, currentPlayer.getName() + " turn", 50, 275);
+        font.draw(batch, "Press 'A' to atack, 'D' to defend, 'W' to wait", 50, 225);
 
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.A)) {
             actionsQueue.add(() -> {
@@ -165,6 +176,7 @@ public class GameScreen extends ScreenAdapter {
             Player player = players.get(i);
             player.setPosition(baseX, baseY); // Reubica sprites
             baseX = baseX - (frontAntPositionX - midAntPositionX);
+            if (baseX < 100) baseX = 100;
         }
     }
 
@@ -223,12 +235,12 @@ public class GameScreen extends ScreenAdapter {
 
     private void handleEndGame() {
         if (!areAllPlayersDead()) {
-            font.draw(batch, "You won!", 50, 50);
+            font.draw(batch, "You won!", 50, 275);
             statusText = "Last ant healed 1!";
         } else {
-            font.draw(batch, "You've been defeated, noob...", 50, 50);
+            font.draw(batch, "You've been defeated, noob...", 50, 275);
         }
-        font.draw(batch, "Press 'R' for next fight...", 50, 20);
+        font.draw(batch, "Press 'R' for next fight...", 50, 225);
 
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.R)) {
             restart();
@@ -237,7 +249,7 @@ public class GameScreen extends ScreenAdapter {
 
     private void restart() {
         // new enemy
-        enemy = new Enemy("Baby Cockroach", MathUtils.random(enemy.maxHealth, enemy.maxHealth + 2), 1, 500, 300, cockroachTexture);
+        enemy = new Enemy("Baby Cockroach", MathUtils.random(enemy.maxHealth, enemy.maxHealth + 2), 1, enemyPositionX, enemyPositionY, cockroachTexture);
         state = 0;
         statusText = null;
         currentPlayerIndex = 0;
