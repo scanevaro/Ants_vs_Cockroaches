@@ -8,23 +8,21 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Timer;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 public class GameScreen extends ScreenAdapter {
     private SpriteBatch batch;
     private BitmapFont font;
-    private List<Player> players;
+    private Array<Player> players;
     private Enemy enemy;
 
     private int state; // 0: Selección de acciones, 1: Ejecución de acciones, 2: Turno del enemigo, 3: Fin del juego
 
     private Sprite warriorTexture, mageTexture, archerTexture, cockroachTexture;
     private int currentPlayerIndex;
-    private List<Runnable> actionsQueue; // Lista de acciones que se ejecutarán
+    private Array<Runnable> actionsQueue; // Lista de acciones que se ejecutarán
     private int attackIndex;
     private String statusText;
     private int killStreak;
@@ -41,18 +39,18 @@ public class GameScreen extends ScreenAdapter {
         cockroachTexture = new Sprite(new Texture("cockroach.png"));
 
         // Crear un equipo de 3 jugadores
-        players = new ArrayList<>();
+        players = new Array<>();
 
-        players.add(new Player("Warrior Ant", new Random().nextInt(10,16), 1, 300, 300, warriorTexture));
-        players.add(new Player("Archer Ant", new Random().nextInt(8,14), 1, 200, 300, archerTexture));
-        players.add(new Player("Mage Ant", new Random().nextInt(6,12), 1, 100, 300, mageTexture));
+        players.add(new Player("Warrior Ant", MathUtils.random(10, 15), 1, 300, 300, warriorTexture));
+        players.add(new Player("Archer Ant", MathUtils.random(8,13), 1, 200, 300, archerTexture));
+        players.add(new Player("Mage Ant", MathUtils.random(6,11), 1, 100, 300, mageTexture));
 
         // Crear enemigo
-        enemy = new Enemy("Baby Cockroach", new Random().nextInt(10,16), 1, 500, 300, cockroachTexture);
+        enemy = new Enemy("Baby Cockroach", MathUtils.random(9, 15), 1, 500, 300, cockroachTexture);
 
         state = 0; // Inicia con la selección de acciones de los jugadores
         currentPlayerIndex = 0;
-        actionsQueue = new ArrayList<>();
+        actionsQueue = new Array<>();
 
         attackIndex = 0;
         killStreak = 0;
@@ -100,8 +98,8 @@ public class GameScreen extends ScreenAdapter {
                 if (!enemy.isAlive()){
                     state = 3;
                     killStreak++;
-                    if (players.getLast().isAlive()){ //heal 1 hp to last ant
-                        players.getLast().healOne();
+                    if (players.peek().isAlive()){ //heal 1 hp to last ant
+                        players.peek().healOne();
                     }
                     return;
                 }
@@ -146,8 +144,8 @@ public class GameScreen extends ScreenAdapter {
 
     private void movePlayerToFront(Player player) {
         // Mover el jugador actual al frente de la lista
-        players.remove(player);
-        players.add(0, player); // Colocar al jugador en la primera posición
+        players.removeIndex(players.indexOf(player, true));
+        players.insert(0, player); // Colocar al jugador en la primera posición
         recalculatePlayerPositions(); // Recalcular posiciones de todos los jugadores
     }
 
@@ -156,7 +154,7 @@ public class GameScreen extends ScreenAdapter {
         float baseX = 300; // Posición inicial en X
         float baseY = 300; // Posición base para los sprites
 
-        for (int i = 0; i < players.size(); i++) {
+        for (int i = 0; i < players.size; i++) {
             Player player = players.get(i);
             player.setPosition(baseX, baseY); // Reubica sprites
             baseX = baseX - 100;
@@ -166,7 +164,7 @@ public class GameScreen extends ScreenAdapter {
 
     private void nextPlayerAction() {
         currentPlayerIndex++;
-        if (currentPlayerIndex >= players.size()) {
+        if (currentPlayerIndex >= players.size) {
             currentPlayerIndex = 0; // Reiniciar el índice
             executeActions(); // Ejecutar las acciones seleccionadas
             attackIndex = 0; //Attack Combos
@@ -200,15 +198,24 @@ public class GameScreen extends ScreenAdapter {
         font.draw(batch, "Enemy turn", 50, 100);
 
         statusText = enemy.attackRandom(players);
-        if (players.stream().noneMatch(Player::isAlive)) {
+        if (areAllPlayersDead()) {
             state = 3; // Todos los jugadores están muertos
         } else {
             state = 0; // Volver al turno del jugador
         }
     }
 
+    private boolean areAllPlayersDead() {
+        for (Player player : players) {
+            if (player.isAlive()) {
+                return false; // Si hay al menos un jugador vivo, retorna falso
+            }
+        }
+        return true; // Todos los jugadores están muertos
+    }
+
     private void handleEndGame() {
-        if (players.stream().anyMatch(Player::isAlive)) {
+        if (!areAllPlayersDead()) {
             font.draw(batch, "You won!", 50, 50);
             statusText = "Last ant healed 1!";
         } else {
@@ -223,7 +230,7 @@ public class GameScreen extends ScreenAdapter {
 
     private void restart() {
         // new enemy
-        enemy = new Enemy("Baby Cockroach", new Random().nextInt(10,16), 1, 500, 300, cockroachTexture);
+        enemy = new Enemy("Baby Cockroach", MathUtils.random(enemy.maxHealth, enemy.maxHealth + 2), 1, 500, 300, cockroachTexture);
         state = 0;
         statusText = null;
         currentPlayerIndex = 0;
