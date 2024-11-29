@@ -20,12 +20,13 @@ public class GameScreen extends ScreenAdapter {
 
     private int state; // 0: Selección de acciones, 1: Ejecución de acciones, 2: Turno del enemigo, 3: Fin del juego
 
-    private Sprite warriorTexture, mageTexture, archerTexture, cockroachTexture;
+    private Sprite warriorTexture, mageTexture, archerTexture, cockroachTexture, grassBackground;
     private int currentPlayerIndex;
     private Array<Runnable> actionsQueue; // Lista de acciones que se ejecutarán
     private int attackIndex, enemyPositionX, enemyPositionY, frontAntPositionX, frontAntPositionY, midAntPositionX, midAntPositionY, backAntPositionX, backAntPositionY;
     private String statusText;
     private int killStreak;
+    private int enemyAttackPower;
 
     @Override
     public void show() {
@@ -38,6 +39,12 @@ public class GameScreen extends ScreenAdapter {
         mageTexture = new Sprite(new Texture("mage.png"));
         archerTexture = new Sprite(new Texture("archer.png"));
         cockroachTexture = new Sprite(new Texture("cockroach.png"));
+        grassBackground = new Sprite(new Texture("grass.png"));
+
+        grassBackground.setPosition(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        grassBackground.setCenter(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
+        grassBackground.setScale(2f);
+        grassBackground.setAlpha(90);
 
         frontAntPositionX = (int) (mageTexture.getWidth() + archerTexture.getWidth() + 175);
         frontAntPositionY = 400;
@@ -47,6 +54,7 @@ public class GameScreen extends ScreenAdapter {
         backAntPositionY = 400;
         enemyPositionX = (int) (Gdx.graphics.getWidth() - cockroachTexture.getWidth());
         enemyPositionY = 400;
+        enemyAttackPower = 1;
 
         // Crear un equipo de 3 jugadores
         players = new Array<>();
@@ -56,7 +64,7 @@ public class GameScreen extends ScreenAdapter {
         players.add(new Player("Mage Ant", MathUtils.random(6, 11), 1, backAntPositionX, backAntPositionY, mageTexture));
 
         // Crear enemigo
-        enemy = new Enemy("Baby Cockroach", MathUtils.random(9, 15), 1, enemyPositionX, enemyPositionY, cockroachTexture);
+        enemy = new Enemy("Baby Cockroach", MathUtils.random(5, 10), enemyAttackPower, enemyPositionX, enemyPositionY, cockroachTexture);
 
         state = 0; // Inicia con la selección de acciones de los jugadores
         currentPlayerIndex = 0;
@@ -70,6 +78,8 @@ public class GameScreen extends ScreenAdapter {
     public void render(float delta) {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.begin();
+
+        grassBackground.draw(batch);
 
         // Dibujar jugadores y sus barras de vida en sus nuevas posiciones
         for (Player player : players) {
@@ -97,9 +107,7 @@ public class GameScreen extends ScreenAdapter {
         }
 
         // Enemy kill streak
-        font.setColor(Color.LIGHT_GRAY);
         font.draw(batch, "Current kill streak = " + killStreak, 1475, 50);
-        font.setColor(Color.WHITE);
 
         // Manejo de turnos y acciones
         handleTurn();
@@ -133,6 +141,10 @@ public class GameScreen extends ScreenAdapter {
 
     private void handlePlayerActionSelection() {
         Player currentPlayer = players.get(currentPlayerIndex);
+        if (!currentPlayer.isAlive()) {
+            nextPlayerAction();
+            return;
+        }
 
         font.draw(batch, currentPlayer.getName() + " turn", 50, 275);
         font.draw(batch, "Press 'A' to atack, 'D' to defend, 'W' to wait", 50, 225);
@@ -254,7 +266,8 @@ public class GameScreen extends ScreenAdapter {
 
     private void restart() {
         // new enemy
-        enemy = new Enemy("Baby Cockroach", MathUtils.random(enemy.maxHealth, enemy.maxHealth + 2), 1, enemyPositionX, enemyPositionY, cockroachTexture);
+        enemyAttackPower++;
+        enemy = new Enemy("Baby Cockroach", MathUtils.random(enemy.maxHealth, enemy.maxHealth + 3), enemyAttackPower, enemyPositionX, enemyPositionY, cockroachTexture);
         state = 0;
         statusText = null;
         currentPlayerIndex = 0;

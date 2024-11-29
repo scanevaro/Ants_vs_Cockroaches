@@ -15,7 +15,7 @@ public class Enemy extends Character {
         if (!target.isAlive()) {
             target = players.get(MathUtils.random(0, 2));
         }
-        int attackDamage = MathUtils.random(attackPower, 3);
+        int attackDamage = MathUtils.random(attackPower, attackPower++);
 
         boolean defending = false;
         if (target.isDefending()) defending = true;
