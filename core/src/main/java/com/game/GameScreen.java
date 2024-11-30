@@ -2,6 +2,8 @@ package com.game;
 
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -20,13 +22,16 @@ public class GameScreen extends ScreenAdapter {
 
     private int state; // 0: Selección de acciones, 1: Ejecución de acciones, 2: Turno del enemigo, 3: Fin del juego
 
-    private Sprite warriorTexture, mageTexture, archerTexture, cockroachTexture, grassBackground;
+    private Sprite warriorTexture, cockroachFlippedTexture, mageTexture, archerTexture, cockroachTexture, grassBackground;
     private int currentPlayerIndex;
     private Array<Runnable> actionsQueue; // Lista de acciones que se ejecutarán
     private int attackIndex, enemyPositionX, enemyPositionY, frontAntPositionX, frontAntPositionY, midAntPositionX, midAntPositionY, backAntPositionX, backAntPositionY;
     private String statusText;
     private int killStreak;
     private int enemyAttackPower;
+    private Array<Music> musics;
+    private Music musicPlaying;
+    private Sound babyCockroachDeath, punch1, punch2, punch3, loose;
 
     @Override
     public void show() {
@@ -39,6 +44,8 @@ public class GameScreen extends ScreenAdapter {
         mageTexture = new Sprite(new Texture("mage.png"));
         archerTexture = new Sprite(new Texture("archer.png"));
         cockroachTexture = new Sprite(new Texture("cockroach.png"));
+        cockroachFlippedTexture = new Sprite(new Texture("cockroach.png"));
+        cockroachFlippedTexture.flip(true, true);
         grassBackground = new Sprite(new Texture("grass.png"));
 
         grassBackground.setPosition(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -72,6 +79,31 @@ public class GameScreen extends ScreenAdapter {
 
         attackIndex = 0;
         killStreak = 0;
+
+        startMusic();
+        setSFX();
+
+        cockroachFlippedTexture.setPosition(enemyPositionX, enemyPositionY - 300);
+    }
+
+    private void setSFX() {
+        babyCockroachDeath = Gdx.audio.newSound(Gdx.files.internal("babyCockroachDeath.mp3"));
+        punch1 = Gdx.audio.newSound(Gdx.files.internal("punch1.mp3"));
+        punch2 = Gdx.audio.newSound(Gdx.files.internal("punch2.mp3"));
+        punch3 = Gdx.audio.newSound(Gdx.files.internal("punch3.mp3"));
+        loose = Gdx.audio.newSound(Gdx.files.internal("loose.mp3"));
+    }
+
+    private void startMusic() {
+        musics = new Array<>();
+        musics.add(Gdx.audio.newMusic(Gdx.files.internal("kenTheme.mp3")));
+        musics.add(Gdx.audio.newMusic(Gdx.files.internal("guileTheme.mp3")));
+        musics.add(Gdx.audio.newMusic(Gdx.files.internal("ryuTheme.mp3")));
+
+        musicPlaying = musics.random();
+        musicPlaying.setLooping(true);
+        musicPlaying.setVolume(0.2f);
+        musicPlaying.play();
     }
 
     @Override
@@ -87,7 +119,8 @@ public class GameScreen extends ScreenAdapter {
         }
 
         // Dibujar al enemigo
-        enemy.draw(batch, font);
+        if (enemy.isAlive()) enemy.draw(batch, font);
+        else cockroachFlippedTexture.draw(batch);
 
         // How to play
         font.setColor(Color.ORANGE);
@@ -123,6 +156,7 @@ public class GameScreen extends ScreenAdapter {
             if (actionsQueue.isEmpty()) {
                 if (!enemy.isAlive()) {
                     state = 3;
+                    babyCockroachDeath.play();
                     killStreak++;
                     if (players.peek().isAlive()) { //heal 1 hp to last ant
                         players.peek().healOne();
@@ -156,6 +190,13 @@ public class GameScreen extends ScreenAdapter {
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.A)) {
             actionsQueue.add(() -> {
                 currentPlayer.attack(enemy, attackIndex);
+                if (attackIndex == 0) {
+                    punch1.play();
+                } else if (attackIndex == 1) {
+                    punch3.play();
+                } else if (attackIndex == 2) {
+                    punch2.play();
+                }
                 attackIndex++;
                 movePlayerToFront(currentPlayer);
             });
@@ -283,5 +324,9 @@ public class GameScreen extends ScreenAdapter {
         archerTexture.getTexture().dispose();
         cockroachTexture.getTexture().dispose();
         cockroachTexture.getTexture().dispose();
+        for (int i = 0; musics.size > i; i++) musics.get(i).dispose();
+        punch2.dispose();
+        punch1.dispose();
+        punch3.dispose();
     }
 }
