@@ -26,7 +26,7 @@ public class GameScreen extends ScreenAdapter {
     private int currentPlayerIndex;
     private Array<Runnable> actionsQueue; // Lista de acciones que se ejecutarán
     private int attackIndex, enemyPositionX, enemyPositionY, frontAntPositionX, frontAntPositionY, midAntPositionX, midAntPositionY, backAntPositionX, backAntPositionY;
-    private String statusText;
+    public static String statusText;
     private int killStreak;
     private int enemyAttackPower;
     private Array<Music> musics;
@@ -66,12 +66,16 @@ public class GameScreen extends ScreenAdapter {
         // Crear un equipo de 3 jugadores
         players = new Array<>();
 
-        players.add(new Player("Warrior Ant", MathUtils.random(10, 15), 1, frontAntPositionX, frontAntPositionY, warriorTexture));
-        players.add(new Player("Archer Ant", MathUtils.random(8, 13), 1, midAntPositionX, midAntPositionY, archerTexture));
-        players.add(new Player("Mage Ant", MathUtils.random(6, 11), 1, backAntPositionX, backAntPositionY, mageTexture));
+        players.add(new Player("Warrior Ant", MathUtils.random(10, 15), 1, frontAntPositionX,
+            frontAntPositionY, warriorTexture, false));
+        players.add(new Player("Archer Ant", MathUtils.random(8, 13), 1, midAntPositionX,
+            midAntPositionY, archerTexture, false));
+        players.add(new Player("Mage Ant", MathUtils.random(6, 11), 1, backAntPositionX,
+            backAntPositionY, mageTexture, false));
 
         // Crear enemigo
-        enemy = new Enemy("Baby Cockroach", MathUtils.random(5, 10), enemyAttackPower, enemyPositionX, enemyPositionY, cockroachTexture);
+        enemy = new Enemy("Baby Cockroach", MathUtils.random(5, 10), enemyAttackPower, enemyPositionX,
+            enemyPositionY, cockroachTexture, false);
 
         state = 0; // Inicia con la selección de acciones de los jugadores
         currentPlayerIndex = 0;
@@ -308,7 +312,16 @@ public class GameScreen extends ScreenAdapter {
     private void restart() {
         // new enemy
         enemyAttackPower++;
-        enemy = new Enemy("Baby Cockroach", MathUtils.random(enemy.maxHealth, enemy.maxHealth + 3), enemyAttackPower, enemyPositionX, enemyPositionY, cockroachTexture);
+
+        if (killStreak > 1 && MathUtils.random(1, 2) >= 2) {
+            cockroachTexture = new Sprite(new Texture("adultCockroach.png"));
+            enemy = new Enemy("Adult Cockroach", MathUtils.random(enemy.maxHealth, enemy.maxHealth + 3),
+                enemyAttackPower, enemyPositionX, enemyPositionY, cockroachTexture, true);
+        } else {
+            enemy = new Enemy("Baby Cockroach", MathUtils.random(enemy.maxHealth, enemy.maxHealth + 3),
+                enemyAttackPower, enemyPositionX, enemyPositionY, cockroachTexture, false);
+        }
+
         state = 0;
         statusText = null;
         currentPlayerIndex = 0;

@@ -6,8 +6,8 @@ import com.badlogic.gdx.utils.Array;
 
 public class Enemy extends Character {
 
-    public Enemy(String name, int health, int attackPower, float positionX, float positionY, Sprite sprite) {
-        super(name, health, attackPower, positionX, positionY, sprite);
+    public Enemy(String name, int health, int attackPower, float positionX, float positionY, Sprite sprite, boolean hasArmor) {
+        super(name, health, attackPower, positionX, positionY, sprite, hasArmor);
     }
 
     public String attackRandom(Array<Player> players) {

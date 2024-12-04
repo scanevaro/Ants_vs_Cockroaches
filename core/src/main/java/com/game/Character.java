@@ -12,10 +12,11 @@ public abstract class Character {
     protected int attackPower;
     protected float positionX;
     protected float positionY;
+    protected boolean hasArmor;
     protected Sprite sprite;
     protected Texture healthBarBackground, healthBarForeground;
 
-    public Character(String name, int health, int attackPower, float positionX, float positionY, Sprite sprite) {
+    public Character(String name, int health, int attackPower, float positionX, float positionY, Sprite sprite, boolean hasArmor) {
         this.name = name;
         this.health = health;
         this.maxHealth = health; // Guardar la salud máxima para la barra de salud
@@ -23,15 +24,25 @@ public abstract class Character {
         this.positionX = positionX;
         this.positionY = positionY;
         this.sprite = sprite;
+        this.hasArmor = hasArmor;
         this.sprite.setPosition(positionX, positionY);// Posicionar el sprite
         healthBarBackground = new Texture("health_bar_background.png");
         healthBarForeground = new Texture("health_bar_foreground.png");
     }
 
-    public void takeDamage(int damage) {
-        health -= damage;
+    public void takeDamage(int damage, int attackIndex) {
+        damage = damage + attackIndex;
+
+        if (hasArmor) health--;
+        else health -= damage;
+
         if (health < 0) {
             health = 0;
+        }
+
+        if (attackIndex >= 2) {
+            GameScreen.statusText = "Enemy armor broke!";
+            hasArmor = false;
         }
     }
 
@@ -67,7 +78,7 @@ public abstract class Character {
         font.draw(batch, health + "/" + maxHealth, positionX, positionY - barHeight - 40);
     }
 
-    public void healOne(){
+    public void healOne() {
         if (health != maxHealth)
             health++;
     }
