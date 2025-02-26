@@ -1,0 +1,17 @@
+name: Create Ticket on New Project
+
+on:
+  create:
+    types: [repository]
+
+jobs:
+  create_issue:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create Ticket in Proyecto Maestro
+      uses: octokit/request-action@v2.x
+      with:
+        route: POST /repos/scanevaro/Proyecto_Maestro/issues
+        title: "New Project Created: ${{ github.event.repository.name }}"
+        body: "A new project has been created in the repository ${{ github.event.repository.html_url }}. Please review and take necessary actions."
+        token: ${{ secrets.GITHUB_TOKEN }}
