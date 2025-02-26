@@ -22,4 +22,4 @@ jobs:
               "body": "Un nuevo proyecto ha sido creado en el repositorio ${{ github.repository }}. Proyecto: ${{ github.event.project.name }}",
               "labels": ["bug", "documentation"]  # Puedes ajustar las etiquetas
             }' \
-            "https://github.com/users/scanevaro/projects/4""
+            "https://api.github.com/repos/scanevaro/Proyecto_Maestro/issues"
