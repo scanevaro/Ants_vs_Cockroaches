@@ -15,11 +15,35 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Crear un nuevo issue en el repositorio "Proyecto Maestro"
+          # Crear un nuevo issue en el proyecto "Proyecto Maestro"
           curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
             -d '{
               "title": "Nuevo ticket por proyecto creado",
               "body": "Un nuevo proyecto ha sido creado en el repositorio ${{ github.repository }}. Proyecto: ${{ github.event.project.name }}",
               "labels": ["bug", "documentation"]  # Puedes ajustar las etiquetas
             }' \
-            "https://api.github.com/repos/scanevaro/Proyecto_Maestro/issues"
+            "name: Crear Ticket en Proyecto
+
+on:
+  project:
+    types: [created]  # Esto se dispara cuando un proyecto es creado
+
+jobs:
+  create-ticket:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v2
+
+      - name: Crear Issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Crear un nuevo issue en el proyecto "Proyecto Maestro"
+          curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
+            -d '{
+              "title": "Nuevo ticket por proyecto creado",
+              "body": "Un nuevo proyecto ha sido creado en el repositorio ${{ github.repository }}. Proyecto: ${{ github.event.project.name }}",
+              "labels": ["bug", "documentation"]  # Puedes ajustar las etiquetas
+            }' \
+            "https://github.com/users/scanevaro/projects/4""
