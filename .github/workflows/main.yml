@@ -1,25 +1,73 @@
-name: Crear Ticket en Proyecto
+name: New Project to Master Issue
 
 on:
   project:
-    types: [created]  # Esto se dispara cuando un proyecto es creado
+    types:
+      - created
 
 jobs:
-  create-ticket:
+  create_reference_issue:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repo
-        uses: actions/checkout@v2
+      - name: Create reference issue
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PROJECT_TOKEN }}
+          script: |
+            // Obtener información del proyecto recién creado
+            const projectId = context.payload.projects_v2.node_id;
+            const projectTitle = context.payload.projects_v2.title;
+            const projectUrl = context.payload.projects_v2.html_url;
+            const projectOwner = context.payload.sender.login;
+            // Crear issue en el repositorio maestro
+            await github.rest.issues.create({
+              owner: 'scanevaro',
+              repo: 'Proyecto_Maestro',
+              title: `Nuevo proyecto: ${projectTitle}`,
+              body: `
+              # Nuevo proyecto creado
 
-      - name: Crear Issue
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Crear un nuevo issue en el proyecto "Proyecto Maestro"
-          curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
-            -d '{
-              "title": "Nuevo ticket por proyecto creado",
-              "body": "Un nuevo proyecto ha sido creado en el repositorio ${{ github.repository }}. Proyecto: ${{ github.event.project.name }}",
-              "labels": ["bug", "documentation"]  # Puedes ajustar las etiquetas
-            }' \
-            "https://api.github.com/repos/scanevaro/Proyecto_Maestro/issues"
+              ## Detalles
+              - **Nombre**: ${projectTitle}
+              - **Creado por**: ${projectOwner}
+              - **URL**: ${projectUrl}
+              - **ID del proyecto**: \`${projectId}\`
+              Este issue sirve como referencia al proyecto mencionado arriba. Los cambios de estado en este issue pueden reflejarse en el proyecto referenciado.
+              `,
+              labels: ['proyecto-referencia', 'nuevo-proyecto']
+            });
+            console.log(`Issue de referencia creado para el proyecto: ${projectTitle}`);
+      - name: Add issue to master project
+        uses: actions/github-script@v6
+        if: success()
+        with:
+          github-token: ${{ secrets.PROJECT_TOKEN }}
+          script: |
+            // Obtener el último issue creado (el que acabamos de crear)
+            const issues = await github.rest.issues.listForRepo({
+              owner: 'scanevaro',
+              repo: 'Proyecto_Maestro',
+              state: 'open',
+              sort: 'created',
+              direction: 'desc',
+              per_page: 1
+            });
+            if (issues.data.length === 0) {
+              console.log('No se encontró el issue recién creado');
+              return;
+            }
+            const issueId = issues.data[0].node_id;
+            // Añadir el issue al proyecto maestro
+            await github.graphql(`
+              mutation {
+                addProjectV2ItemById(input: {
+                  projectId: "ID_DEL_PROYECTO_MAESTRO"
+                  contentId: "${issueId}"
+                }) {
+                  item {
+                    id
+                  }
+                }
+              }
+            `);
+            console.log('Issue añadido al proyecto maestro');
